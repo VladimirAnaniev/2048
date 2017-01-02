@@ -1,0 +1,4 @@
+﻿  game.cpp
+d:\programming\visual studio projects\2048\2048\game.cpp(244): warning C4101: 'c': unreferenced local variable
+  2048.vcxproj -> D:\Programming\Visual Studio Projects\2048\Debug\2048.exe
+  2048.vcxproj -> D:\Programming\Visual Studio Projects\2048\Debug\2048.pdb (Partial PDB)
