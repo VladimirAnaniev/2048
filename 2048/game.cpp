@@ -194,7 +194,7 @@ void makeAddition(int row, int col, int n, char dir)
 			board[row][col] = 0;
 		}
 	}
-	else
+	else if (dir == LEFT || dir == RIGHT)
 	{
 		if (board[row][col] == board[row][n])
 		{
@@ -300,6 +300,8 @@ void changeState(char direction)
 
 	//Only add a new element if changes were made
 	if (changed) addRandom();
+	//If no changes were made, make an alert sound
+	else cout << '\a';
 }
 
 int main()
@@ -312,6 +314,10 @@ int main()
 	{
 		//Self-explanatory..
 		printBoard();
+
+		//When arrow key is pressed, _getch is called twice
+		//Escape the first one
+		_getch();
 
 		//Make moves depending on the pressed keyboard key
 		switch(_getch())
@@ -326,8 +332,6 @@ int main()
 			case 77: changeState(RIGHT); break;
 			//Esc
 			case 27: gameOver(); break;
-			//Default -> alert
-			default: cout << "\a";  break;
 		}
 	}
 
