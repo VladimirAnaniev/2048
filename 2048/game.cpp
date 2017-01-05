@@ -11,19 +11,19 @@ using namespace std;
 #define RIGHT 'R'
 
 //Global variables
+int score = 0;
 int board[SIZE][SIZE];
 bool playing = true;
 
 void gameOver()
 {
-	//End game
 	playing = false;
 	cout << "Game Over!";
 }
 
 bool areThereFreeCells()
 {
-	//Check if there are any free cells.
+	//Search for free cells and return true if available
 	for (int r = 0; r < SIZE; r++)
 	{
 		for (int c = 0; c < SIZE; c++)
@@ -32,6 +32,7 @@ bool areThereFreeCells()
 		}
 	}
 
+	//No free cells found
 	return false;
 }
 
@@ -73,22 +74,28 @@ void initializeBoard()
 	addRandom();
 }
 
-void printSpaces(int num)
+void printCell(int num)
 {
-	int count = 0;
-	if (num == 0) count++;
+	int spaces = 6, number = num;
+	if (num == 0) spaces--;
 	while(num)
 	{
-		//Count the digits of the number
+		//Count the digits of the number and remove spaces
 		num /= 10;
-		count++;
+		spaces--;
 	}
 
 	
-	for(int i=count;i<6;i++)
+	for(int i=0;i<spaces;i++)
 	{
-		//Print spaces to align all cells
-		cout << ' ';
+		//print the number in the center of the cell
+		if (i == spaces / 2) {
+			if(number) cout << number;
+			//Use a dot when the number is 0
+			else cout << ".";
+		}
+		//Print spaces in the sides
+		else cout << ' ';
 	}
 }
 
@@ -97,18 +104,22 @@ void printBoard()
 	//Clear the console
 	system("cls");
 
+	//Print score
+	cout << "Score: " << score << endl;
+
+	cout << endl;
 	for (int i = 0; i < SIZE; i++)
 	{
 		for (int j = 0; j < SIZE; j++)
 		{
 			//Print each number with spaces for alignment
-			cout << board[i][j];
-			printSpaces(board[i][j]);
+			printCell(board[i][j]);
 		}
 		//Empty rows for alignment.
 		cout << endl << endl << endl;
 	}
 
+	cout << "Use Arrow Keys to move." << endl << " Press Esc to quit";
 }
 
 int getFreeCell(int n, char direction)
@@ -183,24 +194,26 @@ int getFullCell(int row, int col, char dir)
 	return -1;
 }
 
+void updateScore(int num)
+{
+	score += num;
+}
+
 void makeAddition(int row, int col, int n, char dir)
 {
-	//Add two given numbers if they have the same value
-	if (dir == UP || dir == DOWN)
+	int newRow = row, newCol = col;
+
+	//Change variables depending on direction
+	if (dir == UP || dir == DOWN) newRow = n;
+	else if (dir == LEFT || dir == RIGHT) newCol = n;
+
+	if (board[row][col] == board[newRow][newCol])
 	{
-		if (board[row][col] == board[n][col])
-		{
-			board[n][col] = 2 * board[row][col];
-			board[row][col] = 0;
-		}
-	}
-	else if (dir == LEFT || dir == RIGHT)
-	{
-		if (board[row][col] == board[row][n])
-		{
-			board[row][n] = 2 * board[row][col];
-			board[row][col] = 0;
-		}
+		//Numbers are equal, update score, save the sum in the new cell and make old cell 0.
+		int sum = 2 * board[row][col];
+		updateScore(sum);
+		board[newRow][newCol] = sum;
+		board[row][col] = 0;
 	}
 }
 
