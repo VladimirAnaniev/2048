@@ -4,26 +4,25 @@
 using namespace std;
 
 //Define constants
-#define SIZE 4
+//#define SIZE 4
 #define DOWN 'D'
 #define UP 'U'
 #define LEFT 'L'
 #define RIGHT 'R'
 
 //Global variables
+int SIZE = 4;
 int score = 0;
-int board[SIZE][SIZE];
+int** board;
 bool playing = true;
 
-void gameOver()
+void clear()
 {
-	playing = false;
-	cout << "Game Over!";
+	system("cls");
 }
 
 bool areThereFreeCells()
 {
-	//Search for free cells and return true if available
 	for (int r = 0; r < SIZE; r++)
 	{
 		for (int c = 0; c < SIZE; c++)
@@ -32,7 +31,6 @@ bool areThereFreeCells()
 		}
 	}
 
-	//No free cells found
 	return false;
 }
 
@@ -40,57 +38,105 @@ void addRandom()
 {
 	int row, col;
 
-	if (!areThereFreeCells())
-	{
-		//If no free chells are available, end the game.
-		gameOver();
-		return;
-	}
-		
 	do
 	{
-		//Generate random colnum and row number for the new cell
 		row = rand() % SIZE;
 		col = rand() % SIZE;
 	} while (board[row][col] != 0);
 
-	//Add the cell to the board.
 	board[row][col] = 2;
 }
-
 void initializeBoard()
 {
-	//Make all cells on the board zeros.
+	board = new int*[SIZE];
 	for (int i = 0; i < SIZE; i++)
 	{
+		int* curr = new int[SIZE];
 		for (int j = 0; j < SIZE; j++)
 		{
-			board[i][j] = 0;
+			curr[j] = 0;
 		}
+		board[i] = curr;
 	}
 
-	//Add two initial numbers.
 	addRandom();
 	addRandom();
+
+	score = 0;
+}
+
+int initSettings()
+{
+	system("cls");
+	char n;
+
+	cout <<endl<< "Enter a number between 3 and 9 for size of the board." << endl;
+
+	while(true)
+	{
+		cin >> n;
+		if (n >= '3' && n <= '9') return n-'0';
+
+		cout << endl << "Try again" << endl;
+	}
+}
+
+void deleteBoard()
+{
+	for(int i=0;i<SIZE;i++)
+	{
+		delete[] board[i];
+	}
+
+	delete[] board;
+}
+
+void gameOver()
+{
+	deleteBoard();
+
+	clear();
+	cout << endl << endl << "----- Game Over! -----";
+	cout << endl << endl << "--Your score: " <<score<<" --"<< endl << endl;
+	cout << "type 'r' to try again and 'q' to quit." << endl;
+
+	char input;
+	while(true)
+	{
+		cin >> input;
+		if (input == 'q') {
+			playing = false;
+			break;
+		}
+		if (input == 'r') {
+			SIZE = initSettings();
+			initializeBoard();
+			break;
+		}
+
+		cout <<endl<< "Try again!" << endl;
+	}
+
+	
 }
 
 void printCell(int num)
 {
 	int spaces = 6, number = num;
 	if (num == 0) spaces--;
-	while(num)
+	while (num)
 	{
-		//Count the digits of the number and remove spaces
 		num /= 10;
 		spaces--;
 	}
 
-	
-	for(int i=0;i<spaces;i++)
+
+	for (int i = 0; i < spaces; i++)
 	{
 		//print the number in the center of the cell
-		if (i == spaces / 2) {
-			if(number) cout << number;
+		if (i == spaces / 2)
+		{
+			if (number) cout << number;
 			//Use a dot when the number is 0
 			else cout << ".";
 		}
@@ -101,8 +147,7 @@ void printCell(int num)
 
 void printBoard()
 {
-	//Clear the console
-	system("cls");
+	clear();
 
 	//Print score
 	cout << "Score: " << score << endl;
@@ -112,10 +157,8 @@ void printBoard()
 	{
 		for (int j = 0; j < SIZE; j++)
 		{
-			//Print each number with spaces for alignment
 			printCell(board[i][j]);
 		}
-		//Empty rows for alignment.
 		cout << endl << endl << endl;
 	}
 
@@ -125,7 +168,7 @@ void printBoard()
 int getFreeCell(int n, char direction)
 {
 	//Return the index of the first free cell in the given direction.
-	if(direction == UP)
+	if (direction == UP)
 	{
 		for (int i = 0; i < SIZE; i++)
 		{
@@ -134,7 +177,7 @@ int getFreeCell(int n, char direction)
 	}
 	else if (direction == DOWN)
 	{
-		for (int i = SIZE-1; i >= 0; i--)
+		for (int i = SIZE - 1; i >= 0; i--)
 		{
 			if (board[i][n] == 0) return i;
 		}
@@ -154,23 +197,22 @@ int getFreeCell(int n, char direction)
 		}
 	}
 
-	//Return -1 when no free cells are found
 	return -1;
 }
 
 int getFullCell(int row, int col, char dir)
 {
 	//Return the index of the nearest full cell in the given direction.
-	if(dir==UP)
+	if (dir == UP)
 	{
-		for (int i = row-1; i>=0; i--)
+		for (int i = row - 1; i >= 0; i--)
 		{
 			if (board[i][col] != 0) return i;
 		}
 	}
 	else if (dir == DOWN)
 	{
-		for (int i = row+1; i < SIZE; i++)
+		for (int i = row + 1; i < SIZE; i++)
 		{
 			if (board[i][col] != 0) return i;
 		}
@@ -190,7 +232,6 @@ int getFullCell(int row, int col, char dir)
 		}
 	}
 
-	//Return -1 if no full cells are found.
 	return -1;
 }
 
@@ -209,7 +250,6 @@ void makeAddition(int row, int col, int n, char dir)
 
 	if (board[row][col] == board[newRow][newCol])
 	{
-		//Numbers are equal, update score, save the sum in the new cell and make old cell 0.
 		int sum = 2 * board[row][col];
 		updateScore(sum);
 		board[newRow][newCol] = sum;
@@ -222,15 +262,13 @@ void makeRelocation(int row, int col, char direction)
 	//Move a given number in the given direction.
 	if (board[row][col] != 0)
 	{
-		//save the current value and make the cell 0.
 		int temp = board[row][col];
 		board[row][col] = 0;
 
-		//Set the value of the first free cell to the previously saved value;
 		if (direction == UP || direction == DOWN)
 		{
 			int free = getFreeCell(col, direction);
-			if(free != -1)
+			if (free != -1)
 				board[free][col] = temp;
 		}
 		else
@@ -245,30 +283,32 @@ void makeRelocation(int row, int col, char direction)
 bool makeMove(int n, char direction)
 {
 	//Make all operations on a given row/col
-	int arrBefore[4], arrAfter[4], row=0, col=0;
+
+	int* arrBefore = new int[SIZE];
+	int* arrAfter = new int[SIZE];
+	int row = 0, col = 0;
 
 	for (int i = 0; i < SIZE; i++)
 	{
-		//First setup the variables depending on the direction
 		if (direction == UP)
 		{
 			row = i;
 			col = n;
 		}
-		else if(direction == DOWN)
+		else if (direction == DOWN)
 		{
 			row = SIZE - 1 - i;
 			col = n;
 		}
-		else if(direction == LEFT)
+		else if (direction == LEFT)
 		{
 			row = n;
 			col = i;
 		}
-		else if(direction == RIGHT)
+		else if (direction == RIGHT)
 		{
 			row = n;
-			col = SIZE-1-i;
+			col = SIZE - 1 - i;
 		}
 
 		//Fill array to check if changes were made
@@ -286,15 +326,16 @@ bool makeMove(int n, char direction)
 		arrAfter[i] = board[row][col];
 	}
 
+	bool returnVal = false;
 	//Check for changes.
 	for (int i = 0; i < SIZE; i++)
 	{
-		//there was a difference => a change was made => return true
-		if(arrBefore[i] != arrAfter[i]) return true;
+		if (arrBefore[i] != arrAfter[i]) returnVal = true;
 	}
 
-	//Return false for no difference
-	return false;
+	delete[] arrBefore, arrAfter;
+
+	return returnVal;
 }
 
 void changeState(char direction)
@@ -304,10 +345,8 @@ void changeState(char direction)
 
 	for (int i = 0; i < SIZE; i++)
 	{
-		//Make all operations on current row/col and get bool value if changes were made
 		bool current = makeMove(i, direction);
 
-		//If changes were made on current row/col, change helper
 		if (current) changed = true;
 	}
 
@@ -315,17 +354,17 @@ void changeState(char direction)
 	if (changed) addRandom();
 	//If no changes were made, make an alert sound
 	else cout << '\a';
+	//If no free cells available and no change was made end the game
+	if (!areThereFreeCells() && !changed) gameOver();
 }
 
 int main()
 {
-	//Initialize the game
+	SIZE = initSettings();
 	initializeBoard();
 
-	//Game loop
-	while(playing)
+	while (playing)
 	{
-		//Self-explanatory..
 		printBoard();
 
 		//When arrow key is pressed, _getch is called twice
@@ -333,18 +372,18 @@ int main()
 		_getch();
 
 		//Make moves depending on the pressed keyboard key
-		switch(_getch())
+		switch (_getch())
 		{
-			//UP arrow key
-			case 72: changeState(UP); break;
-			//DOWN arrow key
-			case 80: changeState(DOWN); break;
-			//LEFT arrow key
-			case 75: changeState(LEFT); break;
-			//RIGHT arrow key
-			case 77: changeState(RIGHT); break;
-			//Esc
-			case 27: gameOver(); break;
+		case 72: changeState(UP); //UP arrow key
+			break;
+		case 80: changeState(DOWN); //DOWN arrow key
+			break;
+		case 75: changeState(LEFT); //LEFT arrow key
+			break;
+		case 77: changeState(RIGHT); //RIGHT arrow key
+			break;
+		case 27: gameOver(); //Esc
+			break;
 		}
 	}
 
