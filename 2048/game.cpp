@@ -4,13 +4,13 @@
 using namespace std;
 
 //Define constants
-//#define SIZE 4
 #define DOWN 'D'
 #define UP 'U'
 #define LEFT 'L'
 #define RIGHT 'R'
 
 //Global variables
+int newCells = 1;
 int SIZE = 4;
 int score = 0;
 int** board;
@@ -23,11 +23,14 @@ void clear()
 
 bool areThereFreeCells()
 {
+	int free = 0;
 	for (int r = 0; r < SIZE; r++)
 	{
 		for (int c = 0; c < SIZE; c++)
 		{
-			if (board[r][c] == 0) return true;
+			if (board[r][c] == 0) {
+				if (++free >= newCells) return true;
+			}
 		}
 	}
 
@@ -46,6 +49,7 @@ void addRandom()
 
 	board[row][col] = 2;
 }
+
 void initializeBoard()
 {
 	board = new int*[SIZE];
@@ -59,15 +63,17 @@ void initializeBoard()
 		board[i] = curr;
 	}
 
-	addRandom();
-	addRandom();
+	for(int i=0;i<newCells*2;i++)
+	{
+		addRandom();
+	}
 
 	score = 0;
 }
 
-int initSettings()
+void initSettings()
 {
-	system("cls");
+	clear();
 	char n;
 
 	cout <<endl<< "Enter a number between 3 and 9 for size of the board." << endl;
@@ -75,7 +81,24 @@ int initSettings()
 	while(true)
 	{
 		cin >> n;
-		if (n >= '3' && n <= '9') return n-'0';
+		if (n >= '3' && n <= '9') {
+			SIZE = n - '0';
+			break;
+		}
+
+		cout << endl << "Try again" << endl;
+	}
+
+	cout << endl << "Enter a number between 1 and " << SIZE / 2
+	<< " for number of new cells after swipe." << endl;
+
+	while (true)
+	{
+		cin >> n;
+		if (n >= '1' && n <= SIZE / 2 + '0') {
+			newCells = n-'0';
+			break;
+		}
 
 		cout << endl << "Try again" << endl;
 	}
@@ -91,13 +114,15 @@ void deleteBoard()
 	delete[] board;
 }
 
-void gameOver()
+bool gameOver()
 {
 	deleteBoard();
 
+	cout << '\a';
+
 	clear();
-	cout << endl << endl << "----- Game Over! -----";
-	cout << endl << endl << "--Your score: " <<score<<" --"<< endl << endl;
+	cout << endl << endl << "------- Game Over! -------";
+	cout << endl << endl << "----- Your score: " <<score<<" -----"<< endl << endl;
 	cout << "type 'r' to try again and 'q' to quit." << endl;
 
 	char input;
@@ -105,11 +130,10 @@ void gameOver()
 	{
 		cin >> input;
 		if (input == 'q') {
-			playing = false;
-			break;
+			return true;
 		}
 		if (input == 'r') {
-			SIZE = initSettings();
+			initSettings();
 			initializeBoard();
 			break;
 		}
@@ -117,7 +141,7 @@ void gameOver()
 		cout <<endl<< "Try again!" << endl;
 	}
 
-	
+	return false;
 }
 
 void printCell(int num)
@@ -351,16 +375,46 @@ void changeState(char direction)
 	}
 
 	//Only add a new element if changes were made
-	if (changed) addRandom();
+	if (changed && areThereFreeCells()) {
+		for(int i=0;i<newCells;i++)
+		{
+			addRandom();
+		}
+	}
+	//If no free cells available and a change was made, game over
+	else if (!areThereFreeCells() && changed) gameOver();
 	//If no changes were made, make an alert sound
 	else cout << '\a';
-	//If no free cells available and no change was made end the game
-	if (!areThereFreeCells() && !changed) gameOver();
+}
+
+bool isGameOver()
+{
+	bool over = false;
+
+	if(!areThereFreeCells())
+	{
+		over = true;
+
+		for (int r = 0; r < SIZE; r++)
+		{
+			for (int c = 0; c < SIZE; c++)
+			{
+				//Check for pairs in both directions
+				if (r > 0 && board[r - 1][c] == board[r][c] || c > 0 && board[r][c - 1] == board[r][c]) over = false;
+
+				if (!over) break;
+			}
+
+			if (!over) break;
+		}
+	}
+
+	return over;
 }
 
 int main()
 {
-	SIZE = initSettings();
+	initSettings();
 	initializeBoard();
 
 	while (playing)
@@ -370,6 +424,9 @@ int main()
 		//When arrow key is pressed, _getch is called twice
 		//Escape the first one
 		_getch();
+
+		//Check here so the player is able to see the game board before game over
+		if (isGameOver() && gameOver()) break;
 
 		//Make moves depending on the pressed keyboard key
 		switch (_getch())
