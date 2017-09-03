@@ -7,7 +7,6 @@ Features:
 - Dynamic grid size (3 - 9 cells)
 - Dynamic number of new cells after swipe (1 - [Grid size]/2)
 - Swipe with arrow keys
-- Runs only on Windows :worried:
 
 
 Screenshots:
